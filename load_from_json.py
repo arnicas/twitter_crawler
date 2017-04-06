@@ -1,3 +1,7 @@
+# usage: python load_from_json.py <folder of json> <searchterm>"
+# if searchterm is "all" then use all the files in folder and derive
+# searchterm from the json filename
+
 
 import json
 import logging
@@ -68,18 +72,25 @@ def main():
     PATH = sys.argv[1]
     SEARCHTERM = sys.argv[2]
 
-    hdlr = logging.FileHandler('load_json_' + SEARCHTERM + '.log')
-    hdlr.setFormatter(FORMATTER)
-    logger.addHandler(hdlr)
+    files = get_json_filenames(PATH)
+
+    if SEARCHTERM != "all":
 
     #  Main loop:
-    files = get_json_filenames(PATH)
-    if files:
-        load_from_files(files, SEARCHTERM)
-    else:
-        print("No json files found.")
-    return
+        if files:
+            load_from_files(files, SEARCHTERM)
+        else:
+            print("No json files found.")
+        return
 
+    if SEARCHTERM == "all":
+        hdlr = logging.FileHandler('load_json_ALL.log')
+        hdlr.setFormatter(FORMATTER)
+        logger.addHandler(hdlr)
+        for file in files:
+            SEARCHTERM = file.split("_")[1]
+            print("search term is ", SEARCHTERM)
+            load_from_files([file], SEARCHTERM)
 
 if __name__ == "__main__":
     main()
