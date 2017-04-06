@@ -20,11 +20,13 @@ api = twitter.Api(consumer_key=cred.CONSUMER_KEY,
                   access_token_secret=cred.ACCESS_SECRET,
                   sleep_on_rate_limit=True)
 
-SEARCHES = ["@SAFRAN", "@Alstom","@airliquidegroup"',"@TechnipGroup"',
-            "@SolvayGroup","@Rexel_Group","@VolvoTrucksFR","@orexad_FR",
-            "@Capgemini","@PublicisGroupe","@ENGIEgroup","@ArcelorMittal",
-            "@Intel","@Cisco","@Forrester","@Adobe","@Salesforce",
-            "@Oracle","@MaerskLine","@Generalelectric","@VMware"]
+#SEARCHES = ["@SAFRAN", "@Alstom","@airliquidegroup"',"@TechnipGroup"',
+#            "@SolvayGroup","@Rexel_Group","@VolvoTrucksFR","@orexad_FR",
+#            "@Capgemini","@PublicisGroupe","@ENGIEgroup","@ArcelorMittal",
+#            "@Intel","@Cisco","@Forrester","@Adobe","@Salesforce",
+#            "@Oracle","@MaerskLine","@Generalelectric","@VMware"]
+
+SEARCHES = ["@orexad_FR", "@VolvoTrucksFR", "@SolvayGroup"]
 
 JSON_FILEPATH = "B2Bfiles/data/"
 LOGGERPATH = "B2Bfiles/logs/"
