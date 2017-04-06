@@ -8,6 +8,7 @@ from peewee import MySQLDatabase
 import twitter
 from urllib import parse
 
+import database as mytools
 from database import Tweet
 import credentials as cred
 
@@ -20,13 +21,11 @@ api = twitter.Api(consumer_key=cred.CONSUMER_KEY,
                   access_token_secret=cred.ACCESS_SECRET,
                   sleep_on_rate_limit=True)
 
-#SEARCHES = ["@SAFRAN", "@Alstom","@airliquidegroup"',"@TechnipGroup"',
-#            "@SolvayGroup","@Rexel_Group","@VolvoTrucksFR","@orexad_FR",
-#            "@Capgemini","@PublicisGroupe","@ENGIEgroup","@ArcelorMittal",
-#            "@Intel","@Cisco","@Forrester","@Adobe","@Salesforce",
-#            "@Oracle","@MaerskLine","@Generalelectric","@VMware"]
-
-SEARCHES = ["@orexad_FR", "@VolvoTrucksFR", "@SolvayGroup"]
+SEARCHES = ["@SAFRAN", "@Alstom","@airliquidegroup"',"@TechnipGroup"',
+           "@SolvayGroup","@Rexel_Group","@VolvoTrucksFR","@orexad_FR",
+           "@Capgemini","@PublicisGroupe","@ENGIEgroup","@ArcelorMittal",
+           "@Intel","@Cisco","@Forrester","@Adobe","@Salesforce",
+           "@Oracle","@MaerskLine","@Generalelectric","@VMware"]
 
 JSON_FILEPATH = "B2Bfiles/data/"
 LOGGERPATH = "B2Bfiles/logs/"
@@ -66,13 +65,15 @@ def write_file(searchterm, results):
 def add_to_database(tweets, searchterm):
 
     counter = 0
+    print(len(tweets))
     for tweet in tweets:
         if tweet:
-            t = database.create_tweet_from_dict(tweet, SEARCHTERM)
+            data = json.loads(tweet.AsJsonString())
+            t = mytools.create_tweet_from_dict(data, searchterm)
             if t:
                 counter += 1
             else:
-                logging.error("Did not save tweet %s" % tweet["id"])
+                logging.error("Did not save tweet %s" % data["id"])
         else:
             continue
     return counter
@@ -96,14 +97,13 @@ def main():
         fileout = write_file(SEARCH, tweets)
         logger.info("Wrote out file %s" % fileout)
 
-        #savedcount = db.add_to_database(tweets, SEARCH)
+        savedcount = add_to_database(tweets, SEARCH)
 
+        logger.info("Added %s tweets to the db for term %s" % (savedcount, SEARCH))
 
-        #logger.info("Added %s tweets to the db for term %s" % (savedcount, SEARCH))
-
-        #if foundcount != savedcount:
-        #    diff = foundcount - savedcount
-        #    logger.warning("Mismatch of %s in Found vs Saved for %s" % (diff, SEARCH)) 
+        if foundcount != savedcount:
+            diff = foundcount - savedcount
+            logger.warning("Mismatch of %s in Found vs Saved for %s" % (diff, SEARCH)) 
         logger.removeHandler(hdlr)
 
 if __name__ == "__main__":

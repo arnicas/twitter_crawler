@@ -287,18 +287,20 @@ def create_tweet_from_dict(tweet, searchterm, user=None):
     # place seems to not exist in many
     place = False
     media = False
+    print(tweet.keys())
     if "place" in tweet and tweet['place']:
         place = create_place_from_places(tweet['place'])
 
-    if "media" in tweet["entities"]:
+    if "entities" in tweet and "media" in tweet["entities"]:
         media = create_media_from_entities(tweet["entities"]["media"])
 
     try:
         if not user:
             user = create_user_from_tweet(tweet)
-        tags = create_hashtags_from_entities(tweet["entities"])
-        urls = create_urls_from_entities(tweet["entities"])
-        mentions = create_users_from_entities(tweet["entities"])
+        if "entities" in tweet:
+            tags = create_hashtags_from_entities(tweet["entities"])
+            urls = create_urls_from_entities(tweet["entities"])
+            mentions = create_users_from_entities(tweet["entities"])
 
         # Create new database entry for this tweet
         t = Tweet.create(
