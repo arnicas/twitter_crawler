@@ -5,7 +5,7 @@ import logging
 import sys
 
 from peewee import MySQLDatabase
-import twitter
+import tweepy
 from urllib import parse
 
 import database as mytools
@@ -15,17 +15,20 @@ import credentials as cred
 # should move to a credentials file
 db = MySQLDatabase(cred.SQLDB, host=cred.SQLHOST, user=cred.SQLUSER,passwd=cred.SQLPASS, charset="utf8")
 db.connect()
-api = twitter.Api(consumer_key=cred.CONSUMER_KEY,
-                  consumer_secret=cred.CONSUMER_SECRET,
-                  access_token_key=cred.ACCESS_TOKEN,
-                  access_token_secret=cred.ACCESS_SECRET,
-                  sleep_on_rate_limit=True)
 
-SEARCHES = ["@SAFRAN", "@Alstom","@airliquidegroup"',"@TechnipGroup"',
-           "@SolvayGroup","@Rexel_Group","@VolvoTrucksFR","@orexad_FR",
-           "@Capgemini","@PublicisGroupe","@ENGIEgroup","@ArcelorMittal",
-           "@Intel","@Cisco","@Forrester","@Adobe","@Salesforce",
-           "@Oracle","@MaerskLine","@Generalelectric","@VMware"]
+auth = tweepy.OAuthHandler(cred.CONSUMER_KEY, cred.CONSUMER_SECRET)
+auth.set_access_token(cred.ACCESS_TOKEN, cred.ACCESS_SECRET)
+api = tweepy.API(auth, wait_on_rate_limit=True)
+
+
+
+# SEARCHES = ["@SAFRAN", "@Alstom","@airliquidegroup"',"@TechnipGroup"',
+#            "@SolvayGroup","@Rexel_Group","@VolvoTrucksFR","@orexad_FR",
+#            "@Capgemini","@PublicisGroupe","@ENGIEgroup","@ArcelorMittal",
+#            "@Intel","@Cisco","@Forrester","@Adobe","@Salesforce",
+#            "@Oracle","@MaerskLine","@Generalelectric","@VMware"]
+
+SEARCHES = ['@orexad_FR', '@airliquidegroup', '@VolvoTrucksFR']
 
 JSON_FILEPATH = "B2Bfiles/data/"
 LOGGERPATH = "B2Bfiles/logs/"
@@ -35,14 +38,10 @@ def get_tweets(SEARCH):
 
     res = Tweet.select(Tweet.id).where(Tweet.searchterm==SEARCH).order_by(Tweet.id.desc()).get()
     ID = res.id
-    params = { 
-        "q": SEARCH,
-        "until": TODAY,
-        "since_id": ID
-        }
+
     try:
-        results = api.GetSearch(
-            raw_query=parse.urlencode(params)
+        results = api.search(
+            SEARCH, since_id=ID
             )
     except:
         print("error, no results")
@@ -52,7 +51,7 @@ def write_file(searchterm, results):
 
     dict_to_save = {}
     for row in results:
-        data = json.loads(row.AsJsonString())
+        data = row._json
         dict_to_save[data['id']] = data
 
     filename = JSON_FILEPATH + "tweets_" + searchterm + "_" + TODAY + ".json"
@@ -65,10 +64,9 @@ def write_file(searchterm, results):
 def add_to_database(tweets, searchterm):
 
     counter = 0
-    print(len(tweets))
     for tweet in tweets:
         if tweet:
-            data = json.loads(tweet.AsJsonString())
+            data = tweet._json
             t = mytools.create_tweet_from_dict(data, searchterm)
             if t:
                 counter += 1
