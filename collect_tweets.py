@@ -10,7 +10,7 @@ from urllib import parse
 
 import database as mytools
 from database import Tweet
-import credentials as cred
+import credentials as cred  # also includes path to logs
 
 # should move to a credentials file
 db = MySQLDatabase(cred.SQLDB, host=cred.SQLHOST, user=cred.SQLUSER,passwd=cred.SQLPASS, charset="utf8")
@@ -30,8 +30,8 @@ api = tweepy.API(auth, wait_on_rate_limit=True)
 
 SEARCHES = ['@orexad_FR', '@airliquidegroup', '@VolvoTrucksFR']
 
-JSON_FILEPATH = "B2Bfiles/data/"
-LOGGERPATH = "B2Bfiles/logs/"
+JSON_FILEPATH =  cred.PATH + "B2Bfiles/data/"
+LOGGERPATH = cred.PATH + "B2Bfiles/logs/"
 TODAY = date.today().strftime("%Y-%m-%d")
 
 def get_tweets(SEARCH):

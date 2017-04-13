@@ -265,7 +265,7 @@ def create_media_from_entities(medias):
                 medium.save()
             all_media.append(medium)
         except:
-            logger.error("Error with media", sys.exc_info()[0], media)
+            logger.error("Error with media %s", sys.exc_info()[0])
             continue
     return all_media
 
@@ -287,7 +287,6 @@ def create_tweet_from_dict(tweet, searchterm, user=None):
     # place seems to not exist in many
     place = False
     media = False
-    print(tweet.keys())
     if "place" in tweet and tweet['place']:
         place = create_place_from_places(tweet['place'])
 
