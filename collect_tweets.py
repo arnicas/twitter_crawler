@@ -22,16 +22,17 @@ api = tweepy.API(auth, wait_on_rate_limit=True)
 
 
 
-# SEARCHES = ["@SAFRAN", "@Alstom","@airliquidegroup"',"@TechnipGroup"',
-#            "@SolvayGroup","@Rexel_Group","@VolvoTrucksFR","@orexad_FR",
-#            "@Capgemini","@PublicisGroupe","@ENGIEgroup","@ArcelorMittal",
-#            "@Intel","@Cisco","@Forrester","@Adobe","@Salesforce",
-#            "@Oracle","@MaerskLine","@Generalelectric","@VMware"]
+SEARCHES = ["@SAFRAN", "@Alstom","@airliquidegroup","@TechnipGroup",
+            "@SolvayGroup","@Rexel_Group","@VolvoTrucksFR","@orexad_FR",
+            "@Capgemini","@PublicisGroupe","@ENGIEgroup","@ArcelorMittal",
+            "@Intel","@Cisco","@Forrester","@Adobe","@Salesforce",
+            "@Oracle","@MaerskLine","@Generalelectric","@VMware"]
 
-SEARCHES = ['@orexad_FR', '@airliquidegroup', '@VolvoTrucksFR']
+#SEARCHES = ['@SAFRAN']
 
-JSON_FILEPATH =  cred.PATH + "B2Bfiles/data/"
+JSON_FILEPATH = cred.PATH + "B2Bfiles/data/"
 LOGGERPATH = cred.PATH + "B2Bfiles/logs/"
+
 TODAY = date.today().strftime("%Y-%m-%d")
 
 def get_tweets(SEARCH):
