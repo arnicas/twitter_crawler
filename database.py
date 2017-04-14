@@ -265,7 +265,7 @@ def create_media_from_entities(medias):
                 medium.save()
             all_media.append(medium)
         except:
-            logger.error("Error with media %s", sys.exc_info()[0])
+            logger.error("Error with media save", sys.exc_info()[0])
             continue
     return all_media
 
@@ -361,4 +361,5 @@ def setup():
     db.execute_sql("ALTER TABLE user MODIFY location CHAR(255) CHARACTER SET utf8mb4")
 
 if __name__ == "__main__":
-    setup()
+    #setup()
+    print("If you run this at the command line, you want to setup. Uncomment it.")
