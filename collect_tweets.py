@@ -162,7 +162,6 @@ def main():
         foundcount = len(tweets.items())
         logger.info("Collected %s tweets for term %s" % (foundcount, SEARCH))
 
-        exit()
         fileout = write_file(SEARCH, tweets.values(), date=date_end)
         logger.info("Wrote out file %s" % fileout)
         savedcount = add_to_database(tweets.values(), SEARCH)
