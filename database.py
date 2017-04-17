@@ -158,11 +158,11 @@ def create_user_from_tweet(tweet):
             user.location = userdict['location']
             user.save()
         except peewee.InternalError as exc:
-            logger.error(exc, userdict)
+            logger.error("Issue %s %s" % (exc, userdict))
         except peewee.IntegrityError as exc:
-            logger.error(exc, userdict)
+            logger.error("Issue key/integrity %s %s" % (exc, userdict))
         except:
-            logger.error("Unexpected issue with user", sys.exc_info()[0], userdict)
+            logger.error("Unexpected issue with user %s for %s" % (sys.exc_info()[0], userdict))
     return user
 
 
@@ -239,7 +239,7 @@ def create_place_from_places(placedict):
             url = placedict['url']
             )
     except:
-        logger.error("error with place", sys.exc_info()[0])
+        logger.error("error with place %", sys.exc_info()[0])
     return place
 
 
@@ -265,10 +265,10 @@ def create_media_from_entities(medias):
                 medium.save()
             all_media.append(medium)
         except peewee.IntegrityError as exc:
-            logger.warning(exc, tweet)
+            logger.warning("media key error %s %s" % (exc, media))
             continue
         except:
-            logger.error("Error with media save", sys.exc_info()[0])
+            logger.error("Error with media save %s", sys.exc_info()[0])
             continue
     return all_media
 
@@ -340,10 +340,10 @@ def create_tweet_from_dict(tweet, searchterm, user=None):
         t.save()
         return t
     except peewee.IntegrityError as exc:
-        logger.warning(exc, tweet)
+        logger.warning("key warning %s %s" % (exc, tweet))
         return False
     except:
-        logger.error("unexpected error", sys.exc_info()[0])
+        logger.error("unexpected error %s", sys.exc_info()[0])
         return False
 
 
