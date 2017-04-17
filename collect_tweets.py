@@ -66,7 +66,6 @@ def get_tweets(SEARCH, sinceId, max_id=None):
 
     if not max_id:
         max_id = NINF
-    SEARCH = "'" + SEARCH + "'"
 
     while tweetCount < maxTweets:
         try:
