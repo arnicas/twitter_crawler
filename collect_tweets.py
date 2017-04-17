@@ -4,6 +4,7 @@ import json
 import logging
 import sys
 
+from numpy import NINF  # negative infinity
 from peewee import MySQLDatabase
 import tweepy
 from urllib import parse
@@ -18,7 +19,6 @@ db = MySQLDatabase(cred.SQLDB, host=cred.SQLHOST, user=cred.SQLUSER,passwd=cred.
 auth = tweepy.OAuthHandler(cred.CONSUMER_KEY, cred.CONSUMER_SECRET)
 auth.set_access_token(cred.ACCESS_TOKEN, cred.ACCESS_SECRET)
 api = tweepy.API(auth, wait_on_rate_limit=True)
-
 
 
 SEARCHES = ["@SAFRAN", "@Alstom","@airliquidegroup","@TechnipGroup",
@@ -44,7 +44,6 @@ def get_start_id(SEARCH, date=None):
         res = Tweet.select(Tweet.id).where((Tweet.searchterm==SEARCH) and (Tweet.date <= date)).order_by(Tweet.date.asc()).get()
     id = res.id
     db.close()
-    print("start",id)
     return id
 
 def get_end_id(SEARCH, date=None):
@@ -55,39 +54,41 @@ def get_end_id(SEARCH, date=None):
     else:
         res = Tweet.select(Tweet.id).where(Tweet.searchterm==SEARCH).order_by(Tweet.id.desc()).get()
     id = res.id
-    print("end", id)
     db.close()
     return id
 
+def get_tweets(SEARCH, sinceId, max_id=None):
+    # code from https://www.karambelkar.info/2015/01/how-to-use-twitters-search-rest-api-most-effectively./
+    maxTweets = 100000 # just large
+    tweetsPerQry = 100
+    tweets = []
+    tweetCount = 0
 
-def get_newstart_id(listofStatus):
-    ids = [x._json["id"] for x in listofStatus]
-    ids = sorted(ids, reverse=True)
-    print("newstart", ids[0])
-    return ids[0]
+    if not max_id:
+        max_id = NINF
 
-
-def get_tweets(SEARCH, id, max_id=None):
-    results = []
-    if max_id:
+    while tweetCount < maxTweets:
         try:
-            results = api.search(
-                q=SEARCH, since_id=id, count=100, max_id=max_id  # max
-                )
-            print(len(results))
-        except:
-            print("error, no results.")
-            logger.error("No search results, error occurred.")
-    else:
-        try:
-            results = api.search(
-                q=SEARCH, since_id=id, count=100 # max
-                )
-        except:
-            print("error, no results.")
-            logger.error("No search results, error occurred.")
-    return results
+            if (max_id <= 0):
+                new_tweets = api.search(q=SEARCH, count=tweetsPerQry,
+                                            since_id=sinceId)
+            else:
+                new_tweets = api.search(q=SEARCH, count=tweetsPerQry,
+                                            max_id=str(max_id - 1),
+                                            since_id=sinceId)
+            if not new_tweets:
+                break
+            tweetCount += len(new_tweets)
+            max_id = new_tweets[-1].id
+            print("found %s tweets" % tweetCount)
+            tweets.extend(new_tweets)
+        except tweepy.TweepError as e:
+            # Just exit if any error
+            print("some error : " + str(e))
+            break
 
+    logger.info("Downloaded {0} tweets".format(tweetCount))
+    return tweets
 
 def write_file(searchterm, resultsjson, date=None):
 
@@ -96,7 +97,6 @@ def write_file(searchterm, resultsjson, date=None):
         for res in resultsjson:
             handle.write(json.dumps(res) + "\n")
     return filename
-
 
 def add_to_database(tweets, searchterm):
 
@@ -107,13 +107,12 @@ def add_to_database(tweets, searchterm):
             if t:
                 counter += 1
             else:
-                logging.error("Did not save tweet %s" % tweet["id"])
+                logger.error("Did not save tweet %s" % tweet["id"])
         else:
             continue
     return counter
 
 def main():
-
     global logger
     logger = logging.getLogger('collect_tweets')
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
@@ -135,33 +134,22 @@ def main():
 
         tweets = {}
         results = None
-        foundcount = 0
 
         if date_end:
             max_id = get_end_id(SEARCH, date=date_end)
         else:
             date_end = TODAY
 
-        #print("Max id", max_id)
         logger.info("Max id %s", max_id)
 
         id = get_start_id(SEARCH, date=date_start)
-        # keep getting tweets (in dict for unique keys) till no more
-        while results != []:
-            #print("last id", id)
-            #print("max id", max_id)
-            #print(id < max_id)
-            results = get_tweets(SEARCH, id, max_id=max_id)  # returns a list
-            print("Found %s for %s" % (len(results), SEARCH))
-            foundcount += len(results)
-            if results:
-                for res in results:
-                    tweets[res._json["id"]] = res._json
-                id=get_newstart_id(results)
+        results = get_tweets(SEARCH, id, max_id=max_id)  # returns a list
+        if results:
+            for res in results:
+                tweets[res._json["id"]] = res._json
 
-        foundcount = len(tweets.items())
-        logger.info("Collected %s tweets for term %s" % (foundcount, SEARCH))
-
+        foundcount = len(tweets)
+        logger.info("Unique tweets found for %s is %s" % (SEARCH, foundcount))
         fileout = write_file(SEARCH, tweets.values(), date=date_end)
         logger.info("Wrote out file %s" % fileout)
         savedcount = add_to_database(tweets.values(), SEARCH)

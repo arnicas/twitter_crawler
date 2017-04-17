@@ -264,6 +264,9 @@ def create_media_from_entities(medias):
                 medium.source_status_id = media["source_status_id"]
                 medium.save()
             all_media.append(medium)
+        except peewee.IntegrityError as exc:
+            logger.warning(exc, tweet)
+            continue
         except:
             logger.error("Error with media save", sys.exc_info()[0])
             continue
@@ -337,7 +340,7 @@ def create_tweet_from_dict(tweet, searchterm, user=None):
         t.save()
         return t
     except peewee.IntegrityError as exc:
-        logger.error(exc, tweet)
+        logger.warning(exc, tweet)
         return False
     except:
         logger.error("unexpected error", sys.exc_info()[0])

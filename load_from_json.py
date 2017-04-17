@@ -32,6 +32,7 @@ def get_json_filenames(folder):
 def iterate_file(filename, status_frequency=50):
     i = 0
     jsonfilename = filename
+    tweet_dict = {}
     with open(jsonfilename) as jfile:
         try:
             rows = json.loads(jfile.read())
@@ -42,7 +43,9 @@ def iterate_file(filename, status_frequency=50):
             return
         # the key is the date jean used, not the data
         data = [value for key,value in rows.items()]
-        for line in data:
+        # reduce overlap, use keys to eliminate dupes
+        tweet_dict = {d["id"]:d for d in data}
+        for line in tweet_dict.values():
             i += 1
             yield line # the yield returns the row
             if i % status_frequency == 0:
@@ -75,7 +78,6 @@ def main():
     files = get_json_filenames(PATH)
 
     if SEARCHTERM != "all":
-
     #  Main loop:
         if files:
             load_from_files(files, SEARCHTERM)
