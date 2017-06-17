@@ -21,11 +21,7 @@ auth.set_access_token(cred.ACCESS_TOKEN, cred.ACCESS_SECRET)
 api = tweepy.API(auth, wait_on_rate_limit=True)
 
 
-SEARCHES = ["@SAFRAN", "@Alstom","@airliquidegroup","@TechnipGroup",
-            "@SolvayGroup","@Rexel_Group","@VolvoTrucksFR","@orexad_FR",
-            "@Capgemini","@PublicisGroupe","@ENGIEgroup","@ArcelorMittal",
-            "@Intel","@Cisco","@Forrester","@Adobe","@Salesforce",
-            "@Oracle","@MaerskLine","@Generalelectric","@VMware"]
+SEARCHES = cred.SEARCHES
 
 #SEARCHES = ['@Adobe', '@Cisco']
 
