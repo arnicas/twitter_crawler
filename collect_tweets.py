@@ -2,6 +2,8 @@
 from datetime import date
 import json
 import logging
+import os
+import pathlib
 import sys
 
 from numpy import NINF  # negative infinity
@@ -21,16 +23,12 @@ auth.set_access_token(cred.ACCESS_TOKEN, cred.ACCESS_SECRET)
 api = tweepy.API(auth, wait_on_rate_limit=True)
 
 
-SEARCHES = ["@SAFRAN", "@Alstom","@airliquidegroup","@TechnipGroup",
-            "@SolvayGroup","@Rexel_Group","@VolvoTrucksFR","@orexad_FR",
-            "@Capgemini","@PublicisGroupe","@ENGIEgroup","@ArcelorMittal",
-            "@Intel","@Cisco","@Forrester","@Adobe","@Salesforce",
-            "@Oracle","@MaerskLine","@Generalelectric","@VMware"]
+SEARCHES = cred.SEARCHES
 
 #SEARCHES = ['@Adobe', '@Cisco']
 
-JSON_FILEPATH = cred.PATH + "B2Bfiles/data/"
-LOGGERPATH = cred.PATH + "B2Bfiles/logs/"
+JSON_FILEPATH = cred.PATH + "/data/"
+LOGGERPATH = cred.PATH + "/logs/"
 
 TODAY = date.today().strftime("%Y-%m-%d")
 
@@ -128,7 +126,12 @@ def main():
 
     for SEARCH in SEARCHES:
 
-        hdlr = logging.FileHandler(LOGGERPATH + 'collect' + SEARCH + '.log')
+        logfile = LOGGERPATH + 'collect' + SEARCH + '.log'
+        pathlib.Path(LOGGERPATH).mkdir(parents=True, exist_ok=True)
+        if not os.path.exists(logfile):
+            open(logfile, 'w').close()
+
+        hdlr = logging.FileHandler(logfile)
         hdlr.setFormatter(formatter)
         logger.addHandler(hdlr)
 
