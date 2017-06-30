@@ -131,7 +131,10 @@ def add_to_database(tweets, searchterm):
     counter = 0
     for tweet in tweets:
         if tweet:
-            t = mytools.create_tweet_from_dict(tweet, searchterm)
+            try:
+                t = mytools.create_tweet_from_dict(tweet, searchterm)
+            except:
+                t = None
             if t:
                 counter += 1
             else:
