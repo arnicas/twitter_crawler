@@ -8,11 +8,11 @@ import logging
 from os import listdir
 from os.path import isfile, join
 import sys
-
+logger = logging.getLogger('load_json') # in this order because of circular dep
 import database
 
 # generic defaults - modified in main loop below
-logger = logging.getLogger('load_json')
+
 FORMATTER = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 hdlr = logging.FileHandler('tweet_collector.log')  # defaults
 hdlr.setFormatter(FORMATTER)

@@ -3,7 +3,6 @@ from datetime import date
 import json
 import logging
 import os
-import pathlib
 import sys
 
 from numpy import NINF  # negative infinity
@@ -36,16 +35,41 @@ def get_start_id(SEARCH, date=None):
     # date format is %Y-%m-%d
     db.connect()
 
+    # check for search term.
+    try:
+        check = Tweet.select(Tweet.id).where(Tweet.searchterm==SEARCH).get()
+    except Tweet.DoesNotExist:
+        db.close()
+        return None
+
+    # must test if the tweet searchterm exists or not
     if not date:
-        res = Tweet.select(Tweet.id).where(Tweet.searchterm==SEARCH).order_by(Tweet.id.desc()).get()
+        try:
+            res = Tweet.select(Tweet.id).where(Tweet.searchterm==SEARCH).order_by(Tweet.id.desc()).get()
+        except Tweet.DoesNotExist:
+            db.close()
+            return None
     else:
-        res = Tweet.select(Tweet.id).where((Tweet.searchterm==SEARCH) and (Tweet.date <= date)).order_by(Tweet.date.asc()).get()
-    id = res.id
-    db.close()
-    return id
+        try:
+            res = Tweet.select(Tweet.id).where((Tweet.searchterm==SEARCH) and (Tweet.date <= date)).order_by(Tweet.date.asc()).get()
+            id = res.id
+            db.close()
+            return id
+        except Tweet.DoesNotExist:
+            db.close()
+            return None
+
 
 def get_end_id(SEARCH, date=None):
     db.connect()
+
+    # check for search term.
+    try:
+        check = Tweet.select(Tweet.id).where(Tweet.searchterm==SEARCH).get()
+    except Tweet.DoesNotExist:
+        db.close()
+        return None
+
     if date:
         res = Tweet.select(Tweet.id).where((Tweet.searchterm==SEARCH) and (Tweet.date <= date)).order_by(Tweet.date.desc()).get()
         id = res.id
@@ -57,7 +81,7 @@ def get_end_id(SEARCH, date=None):
 
 def get_tweets(SEARCH, sinceId, max_id=None):
     # code from https://www.karambelkar.info/2015/01/how-to-use-twitters-search-rest-api-most-effectively./
-    maxTweets = 100000 # just large
+    maxTweets = 1000 # just large
     tweetsPerQry = 100
     tweets = []
     tweetCount = 0
@@ -68,8 +92,11 @@ def get_tweets(SEARCH, sinceId, max_id=None):
     while tweetCount < maxTweets:
         try:
             if (max_id <= 0):
-                new_tweets = api.search(q=SEARCH, count=tweetsPerQry,
+                if sinceId:
+                    new_tweets = api.search(q=SEARCH, count=tweetsPerQry,
                                             since_id=sinceId)
+                else:  # new query, no data yet
+                    new_tweets = api.search(q=SEARCH, count=tweetsPerQry)
             else:
                 new_tweets = api.search(q=SEARCH, count=tweetsPerQry,
                                             max_id=str(max_id - 1),
@@ -91,6 +118,7 @@ def get_tweets(SEARCH, sinceId, max_id=None):
 def write_file(searchterm, resultsjson, date=None):
 
     filename = JSON_FILEPATH + "tweets_" + searchterm + "_" + date + ".json"
+    ensure_file_exists(filename)
     with open(filename, "w", encoding="utf8", errors="ignore") as handle:
         for res in resultsjson:
             handle.write(json.dumps(res) + "\n")
@@ -110,6 +138,14 @@ def add_to_database(tweets, searchterm):
             continue
     return counter
 
+def ensure_file_exists(filename):
+    if not os.path.exists(os.path.dirname(filename)):
+        try:
+            os.makedirs(os.path.dirname(filename))
+        except OSError as exc: # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise
+
 def main():
     global logger
     logger = logging.getLogger('collect_tweets')
@@ -126,10 +162,8 @@ def main():
 
     for SEARCH in SEARCHES:
 
-        logfile = LOGGERPATH + 'collect' + SEARCH + '.log'
-        pathlib.Path(LOGGERPATH).mkdir(parents=True, exist_ok=True)
-        if not os.path.exists(logfile):
-            open(logfile, 'w').close()
+        logfile = LOGGERPATH + 'collect_' + SEARCH + '.log'
+        ensure_file_exists(logfile)
 
         hdlr = logging.FileHandler(logfile)
         hdlr.setFormatter(formatter)
