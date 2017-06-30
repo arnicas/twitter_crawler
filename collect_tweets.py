@@ -58,6 +58,8 @@ def get_start_id(SEARCH, date=None):
         except Tweet.DoesNotExist:
             db.close()
             return None
+    db.close()
+    return None
 
 
 def get_end_id(SEARCH, date=None):
