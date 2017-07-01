@@ -239,7 +239,7 @@ def create_place_from_places(placedict):
             url = placedict['url']
             )
     except:
-        logger.error("error with place %", sys.exc_info()[0])
+        logger.error("error with place %s", sys.exc_info()[0])
         return place
     return place
 
