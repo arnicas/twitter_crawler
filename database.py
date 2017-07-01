@@ -240,6 +240,7 @@ def create_place_from_places(placedict):
             )
     except:
         logger.error("error with place %", sys.exc_info()[0])
+        return place
     return place
 
 
